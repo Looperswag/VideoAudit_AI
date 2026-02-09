@@ -1,7 +1,7 @@
 # run_video_processing/report_generator.py
 import os
 from datetime import datetime
-from .video_utils import format_duration # 使用相对导入
+from .video_utils import format_duration_human
 import html # 用于HTML转义，防止XSS
 
 def generate_html_report(results, output_dir, start_time, end_time):
@@ -9,7 +9,7 @@ def generate_html_report(results, output_dir, start_time, end_time):
     html_path = os.path.join(output_dir, "processing_report.html")
     
     total_processing_duration_seconds = end_time - start_time
-    formatted_total_processing_duration = format_duration(total_processing_duration_seconds)
+    formatted_total_processing_duration = format_duration_human(total_processing_duration_seconds)
     
     start_time_str = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
     end_time_str = datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')

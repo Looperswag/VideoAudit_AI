@@ -8,7 +8,7 @@ import re
 # 使用相对导入来引入同包下的模块
 from . import config
 from .gemini_utils import setup_gemini_client, label_video_with_gemini
-from .video_utils import get_video_duration, format_duration # format_duration 用于最终摘要
+from .video_utils import get_video_duration, format_duration_human
 from .report_generator import generate_html_report
 
 def label_entire_videos(input_folder, output_folder,
@@ -173,6 +173,6 @@ def label_entire_videos(input_folder, output_folder,
         print(f"错误：无法保存处理结果摘要到 {summary_path}: {e}")
 
     total_duration_seconds = end_time_processing - start_time_processing
-    formatted_total_duration = format_duration(total_duration_seconds) 
+    formatted_total_duration = format_duration_human(total_duration_seconds) 
     print(f"\n所有视频处理完成！总处理时间: {formatted_total_duration}")
     print(f"所有结果保存在: {output_folder}")
