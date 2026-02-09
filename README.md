@@ -2,8 +2,6 @@
 
 > **智能视频审核专家** - AI-Powered Video Content Analysis & Moderation System
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -239,33 +237,3 @@ pytest --cov=. --cov-report=html
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
-
----
-
-## 📝 许可证
-
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
-
----
-
-## 🙏 致谢
-
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - 强大的视频下载工具
-- [Google Gemini](https://ai.google.dev/) - 多模态 AI 能力
-- [OpenCV](https://opencv.org/) - 视频处理
-
----
-
-## 📮 联系方式
-
-- 问题反馈: [GitHub Issues](https://github.com/Looperswag/Mkt_AI_debug/issues)
-
----
-
-<div align="center">
-
-**用 AI 赋能视频内容审核** 🎥✨
-
-Made with ❤️ by VideoAudit AI Team
-
-</div>
