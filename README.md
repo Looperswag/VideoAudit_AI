@@ -208,32 +208,3 @@ pytest
 # 带覆盖率报告
 pytest --cov=. --cov-report=html
 ```
-
----
-
-## ⚠️ 注意事项
-
-### 法律与合规
-
-- 确保您有权下载和使用目标视频内容
-- 遵守 TikTok 平台的服务条款和 API 使用规范
-- 尊重内容创作者的版权和隐私权
-
-### 技术限制
-
-- **下载限制**: 大量频繁下载可能触发平台限流
-- **API 配额**: Gemini API 有调用频率和配额限制
-- **文件大小**: 单个视频文件建议不超过 500MB
-- **处理时间**: AI 分析每个视频约需 10-30 秒
-
----
-
-## 🤝 贡献
-
-欢迎贡献！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
