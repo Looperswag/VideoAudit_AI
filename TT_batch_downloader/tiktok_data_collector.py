@@ -42,27 +42,25 @@ class RateLimitError(TikTokDownloadError):
 
 
 def rate_limit(delay: float) -> Callable:
-    """Decorator to rate limit function calls.
+    """Decorator to rate-limit method calls on a per-instance basis.
 
-    Args:
-        delay: Minimum delay in seconds between calls.
-
-    Returns:
-        Decorated function with rate limiting.
+    Uses the instance's own state so different collector instances don't
+    interfere with each other's timing.
     """
 
     def decorator(func: Callable) -> Callable:
-        last_called = [0.0]
+        attr_name = f"_rate_limit_last_{func.__name__}"
 
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            elapsed = time.time() - last_called[0]
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
+            last = getattr(self, attr_name, 0.0)
+            elapsed = time.time() - last
             if elapsed < delay:
                 sleep_time = delay - elapsed
-                logger.debug(f"Rate limiting: sleeping for {sleep_time:.2f}s")
+                logger.debug(f"Rate limiting {func.__name__}: sleeping {sleep_time:.2f}s")
                 time.sleep(sleep_time)
-            result = func(*args, **kwargs)
-            last_called[0] = time.time()
+            result = func(self, *args, **kwargs)
+            setattr(self, attr_name, time.time())
             return result
 
         return wrapper

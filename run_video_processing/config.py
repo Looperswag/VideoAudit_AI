@@ -1,42 +1,40 @@
 """
 Configuration module for VideoAudit AI video processing.
 
-This module handles configuration settings including API credentials,
-file paths, and processing parameters.
+Loads settings from environment variables with mandatory validation —
+no placeholder defaults are accepted at runtime.
 """
 
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-# Video file extensions to process
-VIDEO_EXTENSIONS: Final = (".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv")
+# ── Constants ─────────────────────────────────────────────────────────────────
 
-# Maximum video file size in MB
+VIDEO_EXTENSIONS: Final[tuple[str, ...]] = (".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv")
 MAX_VIDEO_SIZE_MB: Final[int] = 500
-
-# API timeout in seconds
 API_TIMEOUT_SECONDS: Final[int] = 300
-
-# Maximum number of API retries
 MAX_RETRIES: Final[int] = 3
-
-# Default gemini model
 DEFAULT_GEMINI_MODEL: Final[str] = "gemini-2.5-flash-preview-05-20"
 
+# Sentinel — used to detect missing env vars (distinct from any valid value)
+_UNSET: Final = object()
+
+
+# ── Dataclass config ───────────────────────────────────────────────────────────
 
 @dataclass
 class AppConfig:
-    """Application configuration with validation.
+    """Validated application configuration.
 
     Attributes:
-        key_path: Path to Google service account key JSON file.
-        project_id: Google Cloud project ID for Vertex AI.
-        location: Google Cloud region for Vertex AI.
-        video_extensions: Tuple of supported video file extensions.
+        key_path:     Path to Google service-account key JSON.
+        project_id:   Google Cloud project ID for Vertex AI.
+        location:     Google Cloud region (e.g. us-central1).
+        video_extensions: Recognised video file extensions.
     """
 
     key_path: Path
@@ -45,94 +43,43 @@ class AppConfig:
     video_extensions: tuple[str, ...] = VIDEO_EXTENSIONS
 
     def __post_init__(self) -> None:
-        """Validate configuration after initialization.
-
-        Raises:
-            ValueError: If configuration values are invalid.
-            FileNotFoundError: If key file does not exist.
-        """
-        # Validate key path exists
+        # Key file must exist on disk
         if not self.key_path.exists():
             raise FileNotFoundError(
-                f"Google key file not found: {self.key_path}\n"
-                f"Please set GOOGLE_KEY_PATH environment variable or "
-                f"place key file at: {self.key_path}"
+                f"[CONFIG] Google key file not found: {self.key_path}\n"
+                "  → Set GOOGLE_KEY_PATH env var or place the JSON key alongside config.py"
             )
 
-        # Validate project_id
+        # Guard against accidental placeholder values
         if not self.project_id or self.project_id.startswith("your_"):
             raise ValueError(
-                f"Invalid GEMINI_PROJECT_ID: '{self.project_id}'\n"
-                f"Please set GEMINI_PROJECT_ID environment variable "
-                f"or update config.py"
+                f"[CONFIG] Invalid GEMINI_PROJECT_ID: '{self.project_id}'\n"
+                "  → Set GEMINI_PROJECT_ID env var to your actual GCP project ID"
             )
 
-        # Validate location
         if not self.location or self.location.startswith("your_"):
             raise ValueError(
-                f"Invalid GEMINI_LOCATION: '{self.location}'\n"
-                f"Please set GEMINI_LOCATION environment variable "
-                f"or update config.py"
+                f"[CONFIG] Invalid GEMINI_LOCATION: '{self.location}'\n"
+                "  → Set GEMINI_LOCATION env var (e.g. us-central1)"
             )
 
     @classmethod
     def from_env(cls) -> "AppConfig":
-        """Create configuration from environment variables.
+        """Build a validated config from environment variables."""
+        key_path = Path(os.getenv("GOOGLE_KEY_PATH", "key.json")).expanduser()
 
-        Environment variables:
-            GOOGLE_KEY_PATH: Path to Google service account key (default: ../key.json)
-            GEMINI_PROJECT_ID: Google Cloud project ID (required)
-            GEMINI_LOCATION: Google Cloud region (default: us-central1)
+        project_id = os.getenv("GEMINI_PROJECT_ID", "")
+        location = os.getenv("GEMINI_LOCATION", "")
 
-        Returns:
-            AppConfig instance with values from environment.
-
-        Raises:
-            ValueError: If required environment variables are missing.
-        """
-        key_path = Path(
-            os.getenv("GOOGLE_KEY_PATH", os.path.join("..", "key.json"))
-        )
-
-        project_id = os.getenv(
-            "GEMINI_PROJECT_ID", "your_DEFAULT_GEMINI_PROJECT_ID"
-        )
-
-        location = os.getenv("GEMINI_LOCATION", "us-central1")
-
-        return cls(
-            key_path=key_path,
-            project_id=project_id,
-            location=location,
-        )
+        return cls(key_path=key_path, project_id=project_id, location=location)
 
 
-# Legacy compatibility - maintain old variable names
-# These are deprecated in favor of AppConfig class
+# ── Legacy module-level helpers (deprecated) ───────────────────────────────────
 
-# Path to Google API key file
-# Use environment variable GOOGLE_KEY_PATH to override
-KEY_PATH = os.getenv("GOOGLE_KEY_PATH", "../your_key_file.json")
-
-# Default Gemini project ID
-# Use environment variable GEMINI_PROJECT_ID to override
-DEFAULT_GEMINI_PROJECT_ID = os.getenv(
-    "GEMINI_PROJECT_ID", "your_DEFAULT_GEMINI_PROJECT_ID"
-)
-
-# Default Gemini location
-# Use environment variable GEMINI_LOCATION to override
-DEFAULT_GEMINI_LOCATION = os.getenv("GEMINI_LOCATION", "your_DEFAULT_GEMINI_LOCATION")
+KEY_PATH: Final = os.getenv("GOOGLE_KEY_PATH", "key.json")
+"""Deprecated — use AppConfig.from_env() instead."""
 
 
 def get_config() -> AppConfig:
-    """Get validated application configuration.
-
-    Returns:
-        AppConfig instance loaded from environment variables.
-
-    Raises:
-        ValueError: If configuration is invalid.
-        FileNotFoundError: If key file is missing.
-    """
+    """Convenience wrapper: return a fully-validated AppConfig instance."""
     return AppConfig.from_env()

@@ -236,7 +236,9 @@ class URLExtractor:
                 with open(file_path, "r", encoding=encoding, errors="replace") as f:
                     content = f.read()
 
-                urls = re.findall(r"https?://[^\s,\"';]+", content)
+                # 协议白名单过滤：仅允许 http/https，防止 javascript: 等恶意协议
+                all_urls = re.findall(r"https?://[^\s,\"';]+", content)
+                urls = [u for u in all_urls if u.startswith(("http://", "https://"))]
 
                 if urls:
                     logger.info(f"Extracted {len(urls)} URLs using regex")
@@ -373,6 +375,16 @@ class TikTokBatchDownloader:
         self.config.output_path.mkdir(parents=True, exist_ok=True)
 
         # Download videos
+        # 初始化 tracker map（按子文件夹缓存，避免重复加载 CSV）
+        tracker_cache: dict[Path, DownloadTracker] = {}
+
+        def get_tracker(subfolder_path: Path) -> DownloadTracker:
+            if subfolder_path not in tracker_cache:
+                tracker_cache[subfolder_path] = DownloadTracker(
+                    subfolder_path / DownloadTracker.CSV_FILENAME
+                )
+            return tracker_cache[subfolder_path]
+
         downloaded_count = 0
         failed_count = 0
 
@@ -383,7 +395,7 @@ class TikTokBatchDownloader:
             )
             subfolder_path.mkdir(exist_ok=True)
 
-            tracker = DownloadTracker(subfolder_path / DownloadTracker.CSV_FILENAME)
+            tracker = get_tracker(subfolder_path)
 
             if tracker.is_processed(url):
                 logger.info(f"Skipping already processed: {url}")
